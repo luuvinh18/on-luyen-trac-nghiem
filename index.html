@@ -83,6 +83,22 @@ th{color:var(--muted);font-weight:600}
 // ============ DATA & STATE ============
 const RAW_BANK = JSON.parse(document.getElementById('quiz-data').textContent);
 
+// Refresh with the latest question bank from quiz-data.json when served over http/https
+// (e.g. GitHub Pages). Falls back silently to the embedded data above when unavailable
+// (e.g. opened directly as a local file via file://, or offline).
+function refreshQuizData(){
+  try{
+    if(typeof fetch !== 'function') return;
+    fetch('./quiz-data.json', {cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; }).then(function(data){
+      if(Array.isArray(data) && data.length){
+        RAW_BANK.length = 0;
+        data.forEach(function(q){ RAW_BANK.push(q); });
+        if(typeof STATE !== 'undefined' && STATE && (STATE.screen==='home' || STATE.screen==='chapterSetup' || STATE.screen==='stats')){ render(); }
+      }
+    }).catch(function(){});
+  }catch(e){ /* ignore: keep embedded fallback data */ }
+}
+
 const CHAPTER_ORDER = [
   ["CH03","Chương III: Bản chất Nhà nước"],
   ["CH04","Chương IV: Chức năng Nhà nước"],
@@ -732,7 +748,7 @@ function renderStats(){
 
 // ============ INIT ============
 render();
+refreshQuizData();
 </script>
 </body>
 </html>
-   

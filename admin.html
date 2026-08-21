@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quản trị ngân hàng câu hỏi - Ôn luyện VB2 CAND</title>
+<style>
+:root{
+  --bg:#f6f7ee; --panel:#ffffff; --panel2:#eef1e2; --text:#132a1c; --muted:#5c7267;
+  --accent:#33401c; --good:#16a34a; --bad:#dc2626; --warn:#b45309; --border:#dbe0cb;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Segoe UI',system-ui,-apple-system,Roboto,'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--text);}
+#app{max-width:900px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:1.4rem;margin:0 0 4px}
+h2{font-size:1.1rem;margin:0 0 10px}
+h3{font-size:0.98rem;margin:0 0 8px}
+.subtitle{color:var(--muted);font-size:0.9rem;margin-bottom:18px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(19,42,28,0.06)}
+.btn{display:inline-block;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:10px;
+  padding:9px 14px;font-size:0.9rem;cursor:pointer;text-align:center;transition:.15s;user-select:none}
+.btn:hover{border-color:var(--accent)}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-bad{background:#fff;color:var(--bad);border-color:var(--bad)}
+.btn-bad:hover{background:rgba(220,38,38,0.08)}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+label{font-size:0.85rem;color:var(--muted);display:block;margin:10px 0 4px}
+input[type=text],input[type=password],select,textarea{
+  background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:8px;
+  padding:9px 10px;font-size:0.92rem;width:100%;font-family:inherit}
+textarea{resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.row4{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.row2,.row4{grid-template-columns:1fr}}
+.tabs{display:flex;gap:8px;margin-bottom:16px}
+.tab{padding:9px 16px;border-radius:10px;border:1px solid var(--border);background:var(--panel2);cursor:pointer;font-size:0.9rem}
+.tab.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+.tabpanel{display:none}
+.tabpanel.active{display:block}
+.pill{display:inline-block;background:var(--panel2);border:1px solid var(--border);border-radius:999px;padding:3px 10px;font-size:0.76rem;color:var(--muted)}
+.status{font-size:0.88rem;padding:9px 12px;border-radius:8px;margin-top:10px}
+.status.ok{background:rgba(22,163,74,0.1);color:var(--good);border:1px solid rgba(22,163,74,0.3)}
+.status.err{background:rgba(220,38,38,0.08);color:var(--bad);border:1px solid rgba(220,38,38,0.3)}
+.status.info{background:rgba(51,64,28,0.08);color:var(--accent);border:1px solid var(--border)}
+.warn-box{background:rgba(180,83,9,0.09);border:1px solid rgba(180,83,9,0.3);color:var(--warn);border-radius:8px;padding:9px 12px;font-size:0.85rem;margin-top:8px}
+.small{font-size:0.82rem;color:var(--muted)}
+ol,ul{padding-left:20px;font-size:0.9rem;line-height:1.6}
+code{background:var(--panel2);padding:1px 6px;border-radius:4px;font-size:0.85em}
+table{width:100%;border-collapse:collapse;font-size:0.85rem;margin-top:10px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:0.78rem}
+.stem-cell{max-width:280px}
+.rm-btn{background:none;border:none;color:var(--bad);cursor:pointer;font-size:0.85rem;text-decoration:underline;padding:0}
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:0.74rem;font-weight:600;background:var(--panel2);color:var(--accent)}
+details summary{cursor:pointer;font-weight:600;color:var(--accent);padding:4px 0}
+.tokrow{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.tokrow > div{flex:1;min-width:220px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+.dot.green{background:var(--good)}
+.dot.red{background:var(--bad)}
+.dot.gray{background:#9aa596}
+.footer-note{color:var(--muted);font-size:0.76rem;text-align:center;margin-top:26px;line-height:1.6}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <h1>🔧 Quản trị ngân hàng câu hỏi</h1>
+  <div class="subtitle">Thêm câu hỏi mới trực tiếp vào ứng dụng ôn luyện — đăng thẳng lên GitHub, không cần nhờ Claude.</div>
+
+  <!-- ===== TOKEN SETUP ===== -->
+  <div class="card">
+    <h2>1. Kết nối với GitHub</h2>
+    <details id="tokenInstructions">
+      <summary>Cách lấy Access Token (chỉ cần làm 1 lần)</summary>
+      <ol>
+        <li>Vào <code>github.com</code> → góc trên bên phải bấm vào ảnh đại diện → <b>Settings</b>.</li>
+        <li>Cuộn xuống cuối menu bên trái → <b>Developer settings</b>.</li>
+        <li>Chọn <b>Personal access tokens</b> → <b>Fine-grained tokens</b> → <b>Generate new token</b>.</li>
+        <li>Đặt tên bất kỳ, ví dụ <code>on-luyen-admin</code>.</li>
+        <li><b>Repository access</b>: chọn <b>Only select repositories</b> → chọn đúng repo <code>on-luyen-trac-nghiem</code>.</li>
+        <li><b>Permissions</b> → <b>Repository permissions</b> → tìm mục <b>Contents</b> → đổi từ "No access" thành <b>Read and write</b>.</li>
+        <li>Bấm <b>Generate token</b> ở cuối trang, sau đó copy chuỗi token (chỉ hiện 1 lần, dạng <code>github_pat_...</code>).</li>
+        <li>Dán vào ô bên dưới và bấm <b>Lưu token</b>.</li>
+      </ol>
+      <div class="small">Token này chỉ được lưu trong trình duyệt của bạn (localStorage), không gửi cho ai khác ngoài GitHub. Chỉ có quyền ghi vào đúng 1 repo này.</div>
+    </details>
+    <div class="tokrow" style="margin-top:12px">
+      <div>
+        <label for="tokenInput">GitHub Personal Access Token</label>
+        <input type="password" id="tokenInput" placeholder="github_pat_...">
+      </div>
+      <div class="btn-row" style="margin-top:0">
+        <button class="btn btn-primary" onclick="saveToken()">Lưu token</button>
+        <button class="btn" onclick="testConnection()">Kiểm tra kết nối</button>
+        <button class="btn btn-bad" onclick="clearToken()">Xoá token</button>
+      </div>
+    </div>
+    <div id="tokenStatus"></div>
+  </div>
+
+  <!-- ===== ADD QUESTIONS ===== -->
+  <div class="card">
+    <h2>2. Thêm câu hỏi mới</h2>
+    <div class="tabs">
+      <div class="tab active" id="tabBtn-single" onclick="switchTab('single')">Nhập từng câu</div>
+      <div class="tab" id="tabBtn-bulk" onclick="switchTab('bulk')">Dán hàng loạt (Excel)</div>
+    </div>
+
+    <!-- SINGLE FORM -->
+    <div class="tabpanel active" id="tabpanel-single">
+      <div class="row2">
+        <div>
+          <label for="f-chapter">Chương</label>
+          <select id="f-chapter" onchange="onChapterChange()"></select>
+        </div>
+        <div>
+          <label for="f-type">Loại câu hỏi</label>
+          <select id="f-type" onchange="onTypeChange()">
+            <option value="mcq">Trắc nghiệm 4 đáp án (mcq)</option>
+            <option value="truefalse">Đúng / Sai (truefalse)</option>
+            <option value="fill">Điền từ (fill)</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="newChapterBlock" style="display:none">
+        <div class="warn-box">
+          Chương mới sẽ được lưu vào ngân hàng, nhưng <b>chưa hiện trong menu "Luyện theo chương" và "Thi thử"</b> cho đến khi cập nhật lại mã nguồn app. Câu hỏi vẫn xuất hiện trong "Luyện ngẫu nhiên" và "Phản xạ nhanh".
+        </div>
+        <div class="row2">
+          <div>
+            <label for="f-newcode">Mã chương mới (viết hoa, không dấu, không khoảng trắng)</label>
+            <input type="text" id="f-newcode" placeholder="VD: CH20">
+          </div>
+          <div>
+            <label for="f-newname">Tên đầy đủ của chương</label>
+            <input type="text" id="f-newname" placeholder="VD: Chương XX: ...">
+          </div>
+        </div>
+      </div>
+
+      <label for="f-section">Mục / phần (không bắt buộc)</label>
+      <input type="text" id="f-section" placeholder="VD: PHẦN I. ...">
+
+      <label for="f-stem">Nội dung câu hỏi</label>
+      <textarea id="f-stem" rows="3" placeholder="Nhập nội dung câu hỏi..."></textarea>
+
+      <div id="mcqBlock">
+        <div class="row4">
+          <div><label>Đáp án A</label><input type="text" id="f-opta"></div>
+          <div><label>Đáp án B</label><input type="text" id="f-optb"></div>
+          <div><label>Đáp án C</label><input type="text" id="f-optc"></div>
+          <div><label>Đáp án D</label><input type="text" id="f-optd"></div>
+        </div>
+        <label for="f-answer-mcq">Đáp án đúng</label>
+        <select id="f-answer-mcq">
+          <option value="A">A</option><option value="B">B</option>
+          <option value="C">C</option><option value="D">D</option>
+        </select>
+      </div>
+
+      <div id="tfBlock" style="display:none">
+        <label for="f-answer-tf">Nhận định này là</label>
+        <select id="f-answer-tf">
+          <option value="Đúng">Đúng</option>
+          <option value="Sai">Sai</option>
+        </select>
+      </div>
+
+      <div id="fillBlock" style="display:none">
+        <label for="f-answer-fill">Đáp án đúng (điền từ)</label>
+        <input type="text" id="f-answer-fill" placeholder="VD: Nhà nước liên bang">
+      </div>
+
+      <label for="f-explain">Giải thích (không bắt buộc)</label>
+      <textarea id="f-explain" rows="2" placeholder="Giải thích thêm cho đáp án..."></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="addSingleToQueue()">+ Thêm vào danh sách chờ</button>
+      </div>
+      <div id="singleStatus"></div>
+    </div>
+
+    <!-- BULK PASTE -->
+    <div class="tabpanel" id="tabpanel-bulk">
+      <p class="small">Dán các dòng đã copy từ Excel (mẫu <code>Mau_cau_hoi_moi.xlsx</code>), phân cách bằng Tab, theo đúng thứ tự 11 cột:<br>
+      <code>chapter_code | chapter_name (chỉ điền nếu chương MỚI) | section | type (mcq/truefalse/fill) | stem | option_a | option_b | option_c | option_d | answer | explanation</code></p>
+      <textarea id="bulkInput" rows="10" placeholder="Dán dữ liệu từ Excel vào đây (Ctrl+V)..."></textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="parseBulk()">Phân tích &amp; thêm vào danh sách chờ</button>
+      </div>
+      <div id="bulkStatus"></div>
+    </div>
+  </div>
+
+  <!-- ===== PENDING QUEUE ===== -->
+  <div class="card">
+    <h2>3. Danh sách chờ đăng (<span id="queueCount">0</span> câu)</h2>
+    <div id="queueTableWrap" class="small">Chưa có câu hỏi nào trong danh sách chờ.</div>
+    <div class="btn-row">
+      <button class="btn" onclick="clearQueue()">Xoá toàn bộ danh sách chờ</button>
+      <button class="btn" onclick="checkBankStatus()">Kiểm tra ngân hàng hiện tại trên GitHub</button>
+    </div>
+    <div id="bankStatus"></div>
+  </div>
+
+  <!-- ===== COMMIT ===== -->
+  <div class="card">
+    <h2>4. Đăng lên GitHub</h2>
+    <p class="small">Bấm nút bên dưới để ghi toàn bộ danh sách chờ vào <code>quiz-data.json</code> trên GitHub. App sẽ tự cập nhật câu hỏi mới trong vòng vài giây sau khi tải lại trang.</p>
+    <button class="btn btn-primary" id="commitBtn" onclick="commitToGitHub()">🚀 Đăng lên GitHub</button>
+    <div id="commitStatus"></div>
+  </div>
+
+  <div class="footer-note">
+    Công cụ quản trị nội bộ cho kho <code>luuvinh18/on-luyen-trac-nghiem</code>. Token chỉ lưu trong trình duyệt của bạn.
+  </div>
+</div>
+
+<script>
+const OWNER = 'luuvinh18';
+const REPO = 'on-luyen-trac-nghiem';
+const BRANCH = 'main';
+const DATA_PATH = 'quiz-data.json';
+const TOKEN_KEY = 'onluyen_admin_gh_pat';
+const API_BASE = 'https://api.github.com';
+
+const KNOWN_CHAPTERS = [
+  ["CH03","Chương III: Bản chất Nhà nước"],
+  ["CH04","Chương IV: Chức năng Nhà nước"],
+  ["CH06","Chương VI: Hình thức Nhà nước"],
+  ["SUP02","Bổ sung: Bộ máy Nhà nước"],
+  ["SUP03","Bổ sung: Hệ thống chính trị"],
+  ["CH08","Chương VIII: Nhà nước pháp quyền"],
+  ["CH12","Chương XII: Bản chất và vai trò của Pháp luật"],
+  ["CH13","Chương XIII: Hình thức và nguồn của Pháp luật"],
+  ["SUP01","Bổ sung: Hệ thống pháp luật & Quy phạm pháp luật"],
+  ["CH17","Chương XVII: Quan hệ pháp luật"],
+  ["CH18","Chương XVIII: Thực hiện và giải thích Pháp luật"],
+  ["CH19A","Chương XIX: Vi phạm pháp luật và Trách nhiệm pháp lý"],
+  ["CH19B","Chương XIX (nâng cao): Vi phạm pháp luật và Trách nhiệm pháp lý"],
+  ["SUP04","Bổ sung: Ý thức pháp luật, Văn hóa pháp lý & Pháp chế"],
+  ["DS","Đúng - Sai tổng hợp (Bài giảng 8)"],
+  ["MISC","Tổng hợp 12 chương không trọng tâm"],
+  ["FILL","Điền từ trả lời ngắn (tổng hợp)"],
+];
+const CHAPTER_NAME_MAP = Object.fromEntries(KNOWN_CHAPTERS);
+
+let queue = [];
+
+// ---------- init ----------
+function initChapterSelect(){
+  const sel = document.getElementById('f-chapter');
+  sel.innerHTML = KNOWN_CHAPTERS.map(([code,name]) => `<option value="${code}">${code} — ${name}</option>`).join('')
+    + `<option value="__new__">+ Chương mới...</option>`;
+}
+function onChapterChange(){
+  const v = document.getElementById('f-chapter').value;
+  document.getElementById('newChapterBlock').style.display = (v === '__new__') ? 'block' : 'none';
+}
+function onTypeChange(){
+  const t = document.getElementById('f-type').value;
+  document.getElementById('mcqBlock').style.display = (t==='mcq') ? 'block' : 'none';
+  document.getElementById('tfBlock').style.display = (t==='truefalse') ? 'block' : 'none';
+  document.getElementById('fillBlock').style.display = (t==='fill') ? 'block' : 'none';
+}
+function switchTab(name){
+  ['single','bulk'].forEach(n=>{
+    document.getElementById('tabBtn-'+n).classList.toggle('active', n===name);
+    document.getElementById('tabpanel-'+n).classList.toggle('active', n===name);
+  });
+}
+function updateCommitBtnLabel(){
+  document.getElementById('commitBtn').innerHTML = queue.length
+    ? `🚀 Đăng ${queue.length} câu lên GitHub`
+    : `🚀 Đăng lên GitHub (chưa có câu nào)`;
+  document.getElementById('commitBtn').disabled = queue.length === 0;
+}
+initChapterSelect();
+onTypeChange();
+updateCommitBtnLabel();
+
+// ---------- token ----------
+function saveToken(){
+  const t = document.getElementById('tokenInput').value.trim();
+  if(!t){ showStatus('tokenStatus', 'Vui lòng dán token trước khi lưu.', 'err'); return; }
+  localStorage.setItem(TOKEN_KEY, t);
+  document.getElementById('tokenInput').value = '';
+  showStatus('tokenStatus', 'Đã lưu token vào trình duyệt này. Bấm "Kiểm tra kết nối" để xác nhận.', 'ok');
+}
+function clearToken(){
+  localStorage.removeItem(TOKEN_KEY);
+  showStatus('tokenStatus', 'Đã xoá token khỏi trình duyệt này.', 'info');
+}
+function getToken(){ return localStorage.getItem(TOKEN_KEY); }
+async function testConnection(){
+  const token = getToken();
+  if(!token){ showStatus('tokenStatus', 'Chưa có token. Hãy dán và bấm "Lưu token" trước.', 'err'); return; }
+  showStatus('tokenStatus', 'Đang kiểm tra...', 'info');
+  try{
+    const r = await fetch(`${API_BASE}/repos/${OWNER}/${REPO}`, { headers: ghHeaders(token) });
+    if(r.status === 401){ showStatus('tokenStatus', 'Token không hợp lệ hoặc đã hết hạn.', 'err'); return; }
+    if(r.status === 404){ showStatus('tokenStatus', 'Token hợp lệ nhưng không thấy quyền truy cập repo này (kiểm tra lại phần Repository access khi tạo token).', 'err'); return; }
+    if(!r.ok){ showStatus('tokenStatus', `Lỗi không xác định (mã ${r.status}).`, 'err'); return; }
+    const info = await r.json();
+    const perms = info.permissions || {};
+    if(perms.push){
+      showStatus('tokenStatus', `Kết nối thành công tới repo ${info.full_name}. Token có quyền ghi.`, 'ok');
+    } else {
+      showStatus('tokenStatus', `Kết nối được tới repo ${info.full_name}, nhưng token có vẻ KHÔNG có quyền ghi (Contents: Read and write). Vào lại GitHub tạo token mới với đúng quyền.`, 'err');
+    }
+  }catch(e){
+    showStatus('tokenStatus', 'Không thể kết nối tới GitHub: ' + e.message, 'err');
+  }
+}
+function ghHeaders(token){
+  return {
+    'Authorization': 'Bearer ' + token,
+    'Accept': 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28'
+  };
+}
+function showStatus(elId, msg, kind){
+  const el = document.getElementById(elId);
+  el.innerHTML = `<div class="status ${kind}">${msg}</div>`;
+}
+
+// ---------- validation ----------
+function normalizeCode(s){ return (s||'').trim().toUpperCase().replace(/\s+/g,''); }
+
+function buildItemFromFields(f){
+  const errors = [];
+  let chapterCode = normalizeCode(f.chapterCode);
+  let chapterName = (f.chapterName||'').trim();
+  if(!chapterCode){ errors.push('Thiếu mã chương'); }
+  if(KNOWN_CHAPTERS.some(c=>c[0]===chapterCode)){
+    chapterName = CHAPTER_NAME_MAP[chapterCode];
+  } else if(chapterCode) {
+    if(!chapterName){ errors.push(`Mã chương "${chapterCode}" là chương mới — cần điền tên chương`); }
+  }
+  const type = (f.type||'').trim().toLowerCase();
+  if(!['mcq','truefalse','fill'].includes(type)){ errors.push(`Loại câu hỏi không hợp lệ: "${f.type}" (chỉ nhận mcq/truefalse/fill)`); }
+  const stem = (f.stem||'').trim();
+  if(!stem){ errors.push('Thiếu nội dung câu hỏi (stem)'); }
+
+  let options = null, answer = (f.answer||'').trim();
+  if(type === 'mcq'){
+    const opta=(f.opta||'').trim(), optb=(f.optb||'').trim(), optc=(f.optc||'').trim(), optd=(f.optd||'').trim();
+    if(!opta||!optb||!optc||!optd){ errors.push('Câu mcq cần đủ 4 đáp án A/B/C/D'); }
+    options = { A: opta, B: optb, C: optc, D: optd };
+    const ansUpper = answer.toUpperCase();
+    if(!['A','B','C','D'].includes(ansUpper)){ errors.push(`Đáp án mcq phải là A/B/C/D, nhận được: "${answer}"`); }
+    answer = ansUpper;
+  } else if(type === 'truefalse'){
+    const norm = answer.trim();
+    const normLower = norm.toLowerCase();
+    if(normLower === 'đúng' || normLower === 'dung' || normLower === 'true' || normLower === 'd'){ answer = 'Đúng'; }
+    else if(normLower === 'sai' || normLower === 'false' || normLower === 's'){ answer = 'Sai'; }
+    else { errors.push(`Đáp án Đúng/Sai không hợp lệ: "${answer}"`); }
+  } else if(type === 'fill'){
+    if(!answer){ errors.push('Câu điền từ cần có đáp án'); }
+  }
+
+  if(errors.length) return { ok:false, errors };
+  return {
+    ok:true,
+    item: {
+      chapter_code: chapterCode,
+      chapter_name: chapterName,
+      section: (f.section||'').trim(),
+      type,
+      stem,
+      options,
+      answer,
+      explanation: (f.explain||'').trim(),
+      source: 'admin_tool'
+    }
+  };
+}
+
+// ---------- single form ----------
+function addSingleToQueue(){
+  const chapterSel = document.getElementById('f-chapter').value;
+  const isNew = chapterSel === '__new__';
+  const type = document.getElementById('f-type').value;
+  let answer = '';
+  if(type==='mcq') answer = document.getElementById('f-answer-mcq').value;
+  else if(type==='truefalse') answer = document.getElementById('f-answer-tf').value;
+  else answer = document.getElementById('f-answer-fill').value;
+
+  const f = {
+    chapterCode: isNew ? document.getElementById('f-newcode').value : chapterSel,
+    chapterName: isNew ? document.getElementById('f-newname').value : '',
+    section: document.getElementById('f-section').value,
+    type,
+    stem: document.getElementById('f-stem').value,
+    opta: document.getElementById('f-opta').value,
+    optb: document.getElementById('f-optb').value,
+    optc: document.getElementById('f-optc').value,
+    optd: document.getElementById('f-optd').value,
+    answer,
+    explain: document.getElementById('f-explain').value
+  };
+
+  const res = buildItemFromFields(f);
+  if(!res.ok){
+    showStatus('singleStatus', 'Lỗi: ' + res.errors.join('; '), 'err');
+    return;
+  }
+  queue.push(res.item);
+  renderQueue();
+  showStatus('singleStatus', 'Đã thêm vào danh sách chờ.', 'ok');
+
+  document.getElementById('f-section').value = '';
+  document.getElementById('f-stem').value = '';
+  document.getElementById('f-opta').value = '';
+  document.getElementById('f-optb').value = '';
+  document.getElementById('f-optc').value = '';
+  document.getElementById('f-optd').value = '';
+  document.getElementById('f-explain').value = '';
+  if(type==='fill') document.getElementById('f-answer-fill').value = '';
+}
+
+// ---------- bulk paste ----------
+function parseBulk(){
+  const raw = document.getElementById('bulkInput').value;
+  const lines = raw.split(/\r\n|\n|\r/).filter(l => l.trim().length > 0);
+  if(lines.length === 0){ showStatus('bulkStatus', 'Chưa có dữ liệu để phân tích.', 'err'); return; }
+
+  let startIdx = 0;
+  const firstCells = lines[0].split('\t');
+  if((firstCells[0]||'').trim().toLowerCase() === 'chapter_code'){ startIdx = 1; }
+
+  const errors = [];
+  const added = [];
+  for(let i = startIdx; i < lines.length; i++){
+    const cells = lines[i].split('\t');
+    const lineNo = i + 1;
+    const f = {
+      chapterCode: cells[0],
+      chapterName: cells[1],
+      section: cells[2],
+      type: cells[3],
+      stem: cells[4],
+      opta: cells[5],
+      optb: cells[6],
+      optc: cells[7],
+      optd: cells[8],
+      answer: cells[9],
+      explain: cells[10]
+    };
+    const res = buildItemFromFields(f);
+    if(!res.ok){
+      errors.push(`Dòng ${lineNo}: ${res.errors.join('; ')}`);
+    } else {
+      added.push(res.item);
+    }
+  }
+
+  added.forEach(it => queue.push(it));
+  renderQueue();
+
+  let msg = `Đã thêm ${added.length} câu vào danh sách chờ.`;
+  let kind = 'ok';
+  if(errors.length){
+    msg += ` Có ${errors.length} dòng lỗi:<br>` + errors.map(e=>'• '+e).join('<br>');
+    kind = added.length ? 'info' : 'err';
+  }
+  showStatus('bulkStatus', msg, kind);
+  if(added.length) document.getElementById('bulkInput').value = '';
+}
+
+// ---------- queue ----------
+function renderQueue(){
+  document.getElementById('queueCount').textContent = queue.length;
+  const wrap = document.getElementById('queueTableWrap');
+  if(queue.length === 0){
+    wrap.innerHTML = 'Chưa có câu hỏi nào trong danh sách chờ.';
+  } else {
+    const rows = queue.map((q, idx) => `
+      <tr>
+        <td>${idx+1}</td>
+        <td><span class="badge">${q.chapter_code}</span></td>
+        <td>${q.type}</td>
+        <td class="stem-cell">${escapeHtml(q.stem).slice(0,120)}${q.stem.length>120?'…':''}</td>
+        <td>${escapeHtml(String(q.answer)).slice(0,40)}</td>
+        <td><button class="rm-btn" onclick="removeFromQueue(${idx})">Xoá</button></td>
+      </tr>`).join('');
+    wrap.innerHTML = `<table><tr><th>#</th><th>Chương</th><th>Loại</th><th>Nội dung</th><th>Đáp án</th><th></th></tr>${rows}</table>`;
+  }
+  updateCommitBtnLabel();
+}
+function removeFromQueue(idx){
+  queue.splice(idx, 1);
+  renderQueue();
+}
+function clearQueue(){
+  if(queue.length === 0) return;
+  if(!confirm(`Xoá toàn bộ ${queue.length} câu trong danh sách chờ? (Chưa đăng lên GitHub nên sẽ mất luôn.)`)) return;
+  queue = [];
+  renderQueue();
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ---------- github read/write ----------
+function b64DecodeUnicode(str){
+  const binary = atob(str.replace(/\n/g, ''));
+  const bytes = new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++) bytes[i] = binary.charCodeAt(i);
+  return new TextDecoder('utf-8').decode(bytes);
+}
+function b64EncodeUnicode(str){
+  const bytes = new TextEncoder().encode(str);
+  let binary = '';
+  const chunk = 0x8000;
+  for(let i=0;i<bytes.length;i+=chunk){
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i+chunk));
+  }
+  return btoa(binary);
+}
+function pad3(n){ return String(n).padStart(3,'0'); }
+
+async function fetchCurrentBank(token){
+  const r = await fetch(`${API_BASE}/repos/${OWNER}/${REPO}/contents/${DATA_PATH}?ref=${BRANCH}`, { headers: ghHeaders(token) });
+  if(!r.ok){
+    const body = await r.text().catch(()=> '');
+    throw new Error(`Không tải được ${DATA_PATH} (mã ${r.status}). ${body.slice(0,200)}`);
+  }
+  const data = await r.json();
+  const bank = JSON.parse(b64DecodeUnicode(data.content));
+  return { bank, sha: data.sha };
+}
+
+async function checkBankStatus(){
+  const token = getToken();
+  if(!token){ showStatus('bankStatus', 'Chưa có token. Hãy thiết lập token ở mục 1 trước.', 'err'); return; }
+  showStatus('bankStatus', 'Đang tải...', 'info');
+  try{
+    const { bank } = await fetchCurrentBank(token);
+    const byChap = {};
+    bank.forEach(q => { byChap[q.chapter_code] = (byChap[q.chapter_code]||0) + 1; });
+    const lines = Object.keys(byChap).sort().map(c => `${c}: ${byChap[c]}`).join(' · ');
+    showStatus('bankStatus', `Tổng số câu hiện có trên GitHub: <b>${bank.length}</b><br><span class="small">${lines}</span>`, 'ok');
+  }catch(e){
+    showStatus('bankStatus', 'Lỗi: ' + e.message, 'err');
+  }
+}
+
+async function commitToGitHub(){
+  const token = getToken();
+  if(!token){ showStatus('commitStatus', 'Chưa có token. Hãy thiết lập token ở mục 1 trước.', 'err'); return; }
+  if(queue.length === 0){ showStatus('commitStatus', 'Danh sách chờ đang trống.', 'err'); return; }
+  if(!confirm(`Đăng ${queue.length} câu hỏi mới lên GitHub? Ứng dụng online sẽ cập nhật ngay sau khi đăng.`)) return;
+
+  const btn = document.getElementById('commitBtn');
+  btn.disabled = true;
+  showStatus('commitStatus', 'Đang tải dữ liệu hiện tại từ GitHub...', 'info');
+  try{
+    const { bank, sha } = await fetchCurrentBank(token);
+
+    const maxSeq = {};
+    bank.forEach(q => {
+      const m = /^([A-Za-z0-9]+)-(\d+)$/.exec(q.id || '');
+      if(m){
+        const code = m[1], seq = parseInt(m[2], 10);
+        if(!maxSeq[code] || seq > maxSeq[code]) maxSeq[code] = seq;
+      }
+    });
+
+    const newItems = queue.map(q => {
+      const seq = (maxSeq[q.chapter_code] || 0) + 1;
+      maxSeq[q.chapter_code] = seq;
+      return Object.assign({ id: `${q.chapter_code}-${pad3(seq)}` }, q);
+    });
+
+    const updatedBank = bank.concat(newItems);
+    const newContent = JSON.stringify(updatedBank);
+
+    showStatus('commitStatus', 'Đang ghi lên GitHub...', 'info');
+    const putRes = await fetch(`${API_BASE}/repos/${OWNER}/${REPO}/contents/${DATA_PATH}`, {
+      method: 'PUT',
+      headers: Object.assign(ghHeaders(token), { 'Content-Type': 'application/json' }),
+      body: JSON.stringify({
+        message: `Thêm ${newItems.length} câu hỏi mới qua công cụ quản trị (${new Date().toISOString().slice(0,10)})`,
+        content: b64EncodeUnicode(newContent),
+        sha,
+        branch: BRANCH
+      })
+    });
+
+    if(putRes.status === 409){
+      showStatus('commitStatus', 'Có thay đổi khác vừa được ghi lên GitHub trong lúc bạn thao tác. Vui lòng tải lại trang và thử đăng lại.', 'err');
+      btn.disabled = false;
+      return;
+    }
+    if(!putRes.ok){
+      const body = await putRes.text().catch(()=> '');
+      showStatus('commitStatus', `Lỗi khi ghi lên GitHub (mã ${putRes.status}): ${body.slice(0,300)}`, 'err');
+      btn.disabled = false;
+      return;
+    }
+
+    const idList = newItems.map(it => it.id).join(', ');
+    showStatus('commitStatus', `Thành công! Đã thêm ${newItems.length} câu (${idList}). Tổng ngân hàng hiện có ${updatedBank.length} câu. Mở lại app và tải lại trang để thấy câu hỏi mới.`, 'ok');
+    queue = [];
+    renderQueue();
+  }catch(e){
+    showStatus('commitStatus', 'Lỗi: ' + e.message, 'err');
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
