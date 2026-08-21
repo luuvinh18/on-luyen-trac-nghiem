@@ -556,6 +556,39 @@ function finishMock(){
   go('mockResult', {correct, total, pct, details});
 }
 
+function renderMockReviewCard(d, i){
+  const q = d.q;
+  const skipped = (d.given===undefined || d.given===null || d.given==='');
+  const statusBadge = skipped
+    ? '<span class="badge badge-bad">Bỏ trống</span>'
+    : `<span class="badge ${d.ok?'badge-good':'badge-bad'}">${d.ok?'Chính xác':'Chưa đúng'}</span>`;
+  let optionsHtml = '';
+  if(q.type==='mcq' && q.options){
+    optionsHtml = Object.keys(q.options).map(k=>{
+      let cls = 'option disabled';
+      if(k===q.answer) cls += ' correct';
+      else if(k===d.given) cls += ' wrong';
+      return `<div class="${cls}">${k}. ${q.options[k]}</div>`;
+    }).join('');
+  } else if(q.type==='truefalse'){
+    optionsHtml = ['Đúng','Sai'].map(val=>{
+      let cls = 'option disabled';
+      if(val===q.answer) cls += ' correct';
+      else if(val===d.given) cls += ' wrong';
+      const icon = val==='Đúng' ? '✅' : '❌';
+      return `<div class="${cls}" style="text-align:center">${icon} ${val}</div>`;
+    }).join('');
+  }
+  return `
+    <div class="card">
+      <div class="small muted">Câu ${i+1} · ${q.chapter_name}</div>
+      <h3>${q.stem}</h3>
+      <div style="margin:10px 0">${optionsHtml}</div>
+      <div class="small">${statusBadge}</div>
+      ${q.explanation? '<div class="explain">'+q.explanation+'</div>' : ''}
+    </div>
+  `;
+}
 function renderMockResult(){
   const wrongCount = STATE.details.filter(d=>!d.ok).length;
   app.innerHTML = `
@@ -573,17 +606,7 @@ function renderMockResult(){
     </div>
     <h3 style="margin-top:20px">Xem lại toàn bộ (${STATE.total} câu · ${wrongCount} câu sai)</h3>
     ${wrongCount===0? '<div class="card">🎉 Xuất sắc — bạn trả lời đúng tất cả các câu!</div>' : ''}
-    ${STATE.details.map((d,i)=>`
-      <div class="card">
-        <div class="small muted">Câu ${i+1} · ${d.q.chapter_name}</div>
-        <h3>${d.q.stem}</h3>
-        <div class="small">
-          <span class="badge ${d.ok?'badge-good':'badge-bad'}">${d.ok?'Chính xác':'Chưa đúng'}</span>
-          &nbsp;Bạn chọn: <span class="badge ${d.ok?'badge-good':'badge-bad'}">${d.given || '(bỏ trống)'}</span>${!d.ok? ' · Đáp án đúng: <span class="badge badge-good">'+d.q.answer+'</span>' : ''}
-        </div>
-        ${d.q.explanation? '<div class="explain">'+d.q.explanation+'</div>' : ''}
-      </div>
-    `).join('')}
+    ${STATE.details.map((d,i)=>renderMockReviewCard(d,i)).join('')}
   `;
 }
 
